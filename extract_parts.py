@@ -1,6 +1,10 @@
 
-def extract_each_part():
-    labels = np.load('data/partnames_per_vertex.pkl')
+import numpy as np
+from visualize_point_cloud import visualize_body_part
+
+def extract_each_part(vertices, faces):
+    labels = np.array(np.load('data/partnames_per_vertex.pkl'))
     body_part_names = list(set(labels))
-    verts_body_part = []
-    # for boxdy_part_name in body_part_names:
+
+    for part in set(labels):
+        body_part = vertices[labels == part]
