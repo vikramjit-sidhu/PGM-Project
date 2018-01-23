@@ -1,7 +1,8 @@
 import numpy as np
 from visualize_point_cloud import visualize_point_cloud
-
+import cv2
 from extract_parts import *
+import ipdb
 def load_body_model():
     #vertices = np.load('data/verts.npy')
     #faces = np.load('data/faces.npy')
@@ -18,16 +19,37 @@ def load_smpl_body_model():
     raw_input('press to continue')
     k = 1
     part_num = 0
-    var_list = np.linspace(0.01,0.2,10)
+    var_list = np.linspace(0.01,0.2,50)
     for var in var_list:
-        male_model.pose[:] = np.random.rand(male_model.pose.size) * var
+        male_model.pose[:] = np.random.rand(male_model.pose.size) * 0
+        #print(dir(male_model))
+        #ipdb.set_trace()
         part_pose = pose_part(male_model.pose[:])
         vertices = male_model.r
         centroid = centroid_part(vertices)
         faces = male_model.f
         #print(part_pose)
-        visualize_point_cloud(vertices, faces)
+        visualize_point_cloud(vertices,centroid, faces)
         raw_input('press')
+
+        ### only for testing
+        R_mat = np.float64(np.array([[0,1,0], [-1,0,0], [0,0,1]]))
+        #R_vec = cv2.Rodrigues(src=R_mat)[0]
+        #print(R_vec)
+        i = 0
+        while(i < 72):
+            male_model.pose[i:i+3] = np.array([0,0,-1.57])
+            vertices = male_model.r
+            faces = male_model.f
+            male_model.pose[i:i+3] = np.array([0,0,0])
+
+            i = i + 3
+            print(i)
+            visualize_point_cloud(vertices,centroid, faces)
+
+            raw_input('press')
+
+        ########
         v_file = 'result/vdata_' + str(k) + '.npy'
         f_file = 'result/fdata_' + str(k) + '.npy'
         p_file = 'result/pose_data_' + str(k) + '.npy'
@@ -42,3 +64,4 @@ def load_smpl_body_model():
 
 if __name__ == "__main__":
     load_smpl_body_model()
+    load_body_model()
