@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import numpy as np
 def extract_each_part():
     labels = np.load('data/partnames_per_vertex.pkl')
@@ -61,6 +62,7 @@ def pose_part(pose_arr):
 	print(part_pose)
 	return part_pose
 
+=======
 
 import numpy as np
 
@@ -75,3 +77,4 @@ def extract_each_part(vertices, faces):
         # visualize_body_part(body_part)
         # raw_input("Press Enter")
         
+>>>>>>> c308081824a852ddd377db727c779f5cd0cbc3ca
