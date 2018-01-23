@@ -32,10 +32,8 @@ def find_unary_potential_gaussian_per_part(Rotation_vectors, centroids):
 
     data = np.column_stack((Rotation_vectors, centroids))
 
-    N = data.shape[0]
-
     # The axis=0 means we find mean along the columns
     mean = np.mean(data, axis=0)
-    Covariance = np.cov(data)
+    cov = np.cov(data)   
 
-    return mean, Covariance
+    return mean, cov
