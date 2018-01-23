@@ -1,6 +1,5 @@
 
 import numpy as np
-from visualize_point_cloud import visualize_body_part
 
 def extract_each_part(vertices, faces):
     labels = np.array(np.load('data/partnames_per_vertex.pkl'))
@@ -8,3 +7,8 @@ def extract_each_part(vertices, faces):
 
     for part in set(labels):
         body_part = vertices[labels == part]
+        from visualize_point_cloud import visualize_body_part
+        # print(part)
+        # visualize_body_part(body_part)
+        # raw_input("Press Enter")
+        
