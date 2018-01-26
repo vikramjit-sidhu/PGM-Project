@@ -29,7 +29,7 @@ def get_relative_rotation(r1, r2):
     return r_relative
 
 
-def find_pariwise_potential_gaussian(part1_Rotation_vectors, part1_centroids, part2_Rotation_vectors, part2_centroids):
+def find_pariwise_potential_gaussian(part1_Rotation_vectors, part1_joints, part2_Rotation_vectors, part2_joints):
     """
     Fit a multiavariate Gaussian to the parameters describing two parts
 
@@ -43,7 +43,7 @@ def find_pariwise_potential_gaussian(part1_Rotation_vectors, part1_centroids, pa
     part1_Rotation_vectors, Nx3 Matrix
         each row corresponds to a data point for the rotation vector of the body part
 
-    part1_centroids, Nx3 matrix
+    part1_joints, Nx3 matrix
         Each row corresponds to a data point for the centroid for the body part
 
     The inputs for the other part are similar
@@ -63,9 +63,9 @@ def find_pariwise_potential_gaussian(part1_Rotation_vectors, part1_centroids, pa
         combined_rotation.append(get_relative_rotation(part1_Rotation_vectors[row_index,:], part2_Rotation_vectors[row_index,:]))
     combined_rotation = np.array(combined_rotation)
 
-    combined_centroids = part1_centroids - part2_centroids
+    combined_joint_locations = part1_joints - part2_joints
 
-    data = np.column_stack((combined_rotation, combined_centroids))
+    data = np.column_stack((combined_rotation, combined_joint_locations))
 
     # The axis=0 means we find mean along the columns
     mean = np.mean(data, axis=0)

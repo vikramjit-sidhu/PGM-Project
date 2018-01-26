@@ -1,6 +1,6 @@
 import numpy as np
 
-def find_unary_potential_gaussian_per_part(Rotation_vectors, centroids):
+def find_unary_potential_gaussian_per_part(Rotation_vectors, joint_locations):
     """
     Fits the data in Rotation_vectors and centroid to a multivariate normal distribution
     
@@ -9,7 +9,7 @@ def find_unary_potential_gaussian_per_part(Rotation_vectors, centroids):
 
     N -> Number of data points for each body part
 
-    IMPORTANT : Each row of the Rotation_vectors and the centroids matrices should
+    IMPORTANT : Each row of the Rotation_vectors and the joint_locations matrices should
         correspond to the same data point
 
     Inputs:
@@ -17,7 +17,7 @@ def find_unary_potential_gaussian_per_part(Rotation_vectors, centroids):
     Rotation_vectors, Nx3 Matrix
         each row corresponds to the rotation vector for the body part
 
-    centroids, Nx3 matrix
+    joint_locations, Nx3 matrix
         Each row corresponds to the centroid for the body part
 
 
@@ -30,7 +30,7 @@ def find_unary_potential_gaussian_per_part(Rotation_vectors, centroids):
         Covariance Matrix 
     """
 
-    data = np.column_stack((Rotation_vectors, centroids))
+    data = np.column_stack((Rotation_vectors, joint_locations))
 
     # The axis=0 means we find mean along the columns
     mean = np.mean(data, axis=0)
