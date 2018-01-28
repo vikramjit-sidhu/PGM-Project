@@ -71,8 +71,7 @@ def find_pariwise_potential_gaussian(part1_pose, part1_joints, part2_pose, part2
 
     # The axis=0 means we find mean along the columns
     mean = np.mean(data, axis=0)
-    cov = np.cov(data)
-
+    cov = np.cov(data.T)
     return mean, cov
 
 

@@ -39,6 +39,7 @@ def main():
     mean_all_parts, cov_all_parts = get_unary_pots_each_part(partwise_data_pose, partwise_data_joints)
 
     # Pairwise potentials
+    import ipdb; ipdb.set_trace()
     pairwise_pots_mean, pairwise_pots_cov = get_pairwise_pots(partwise_data_pose, partwise_data_joints)
     # Ternary and quarternary potentials
     pairwise_pots_mean[0], pairwise_pots_cov[0] = find_ternary_potentials(partwise_data_pose[0], partwise_data_joints[0], partwise_data_pose[1], partwise_data_joints[1], partwise_data_pose[2], partwise_data_joints[2], partwise_data_pose[3], partwise_data_joints[3])
