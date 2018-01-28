@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def get_relative_rotation(r1, r2):
     """
     Find relative rotation between two rotation vectors
@@ -29,7 +28,15 @@ def get_relative_rotation(r1, r2):
     return r_relative
 
 
-def find_pariwise_potential_gaussian(part1_Rotation_vectors, part1_joints, part2_Rotation_vectors, part2_joints):
+def get_relative_rotation_all_data_pts(rot_vectors_1, rot_vectors_2):
+    N = rot_vectors_1.shape[0]
+    combined_rotation = np.empty((N, 3))
+    for row_index in range(N):
+        combined_rotation[row_index, :] = get_relative_rotation(rot_vectors_1[row_index,:], rot_vectors_2[row_index,:]).reshape(1,3)
+    return combined_rotation
+
+
+def find_pariwise_potential_gaussian(part1_pose, part1_joints, part2_pose, part2_joints):
     """
     Fit a multiavariate Gaussian to the parameters describing two parts
 
@@ -40,7 +47,7 @@ def find_pariwise_potential_gaussian(part1_Rotation_vectors, part1_joints, part2
 
     Inputs:
     ------------
-    part1_Rotation_vectors, Nx3 Matrix
+    part1_pose, Nx3 Matrix
         each row corresponds to a data point for the rotation vector of the body part
 
     part1_joints, Nx3 matrix
@@ -57,12 +64,7 @@ def find_pariwise_potential_gaussian(part1_Rotation_vectors, part1_joints, part2
         Covariance Matrix 
     """
 
-    N = part1_Rotation_vectors.shape[0]
-    combined_rotation = []
-    for row_index in range(N):
-        combined_rotation.append(get_relative_rotation(part1_Rotation_vectors[row_index,:], part2_Rotation_vectors[row_index,:]))
-    combined_rotation = np.array(combined_rotation)
-
+    combined_rotation = get_relative_rotation_all_data_pts(part1_pose, part2_pose)
     combined_joint_locations = part1_joints - part2_joints
 
     data = np.column_stack((combined_rotation, combined_joint_locations))
@@ -72,3 +74,20 @@ def find_pariwise_potential_gaussian(part1_Rotation_vectors, part1_joints, part2
     cov = np.cov(data)
 
     return mean, cov
+
+
+def find_ternary_potentials(part1_pose, part1_joints, part2_pose, part2_joints, part3_pose, part3_joints, part4_pose, part4_joints):
+    combined_pose_1_2 = get_relative_rotation_all_data_pts(part1_pose, part2_pose)
+    combined_joints_1_2 = part1_joints - part2_joints
+
+    combined_pose_1_2_3 = get_relative_rotation_all_data_pts(combined_pose_1_2, part3_pose)
+    combined_joints_1_2_3 = combined_joints_1_2 - part3_joints
+
+    return (find_pariwise_potential_gaussian(combined_pose_1_2_3, combined_joints_1_2_3, part4_pose, part4_joints))
+
+
+def find_quarternary_pots(part1_pose, part1_joints, part2_pose, part2_joints, part3_pose, part3_joints, part4_pose, part4_joints, part5_pose, part5_joints):
+    combined_pose_1_2 = get_relative_rotation_all_data_pts(part1_pose, part2_pose)
+    combined_joints_1_2 = part1_joints - part2_joints
+
+    return (find_ternary_potentials(combined_pose_1_2, combined_joints_1_2, part3_pose, part3_joints, part4_pose, part4_joints, part5_pose, part5_joints))
