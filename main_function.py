@@ -1,10 +1,17 @@
 
 from prepare_data import prepare_data
 from find_unary_potentials import find_unary_potential_gaussian_per_part
-from find_pairwise_potentials import find_pariwise_potential_gaussian, find_ternary_potentials, find_quarternary_pots
+from find_pairwise_potentials import find_pariwise_potential_gaussian
+from factor_graph_node import FactorGraphNode
 
-# These are the indices of the body parts over which we calculate the pairwise potentials
-potential_pairs = {1:4, 2:4, 3:6, 4:7, 5:8, 7:10, 8:11, 12:17, 13:16, 14:17, 16:18, 17:19, 18:20, 19:21, 20:22, 21:23}
+# Each key of the below dictionary is a body part index
+# The list elements are the neighbors of the body parts
+nodes_with_neighbors = {
+                    0:[1,2,3], 1:[0,4], 2:[0,5], 3:[0,6], 4:[1,7], 5:[2,8], 6:[3,9]
+                    , 7:[4,10], 8:[5,11], 9:[6,12,13,14], 10:[7], 11:[8], 12:[15,9]
+                    , 13:[0,4], 14:[9,17], 15:[12], 16:[13,18], 17:[14,19], 18:[16,20]
+                    , 19:[17,21], 20:[18,22], 21:[19,23], 22:[20], 23:[21]
+                    }
 
 def get_unary_pots_each_part(partwise_data_pose, partwise_data_joints):
     """
@@ -14,36 +21,86 @@ def get_unary_pots_each_part(partwise_data_pose, partwise_data_joints):
     ------------
     partwise_data_pose, partwise_data_joints
         The data points for each body part
+
+    OUTPUTS:
+    ------------
+    mean_all_parts
+    cov_all_parts
+
+    The above variables are lists.
+    The data corresponding to each body part is stored in each index of the list
     """
     number_of_body_parts = len(partwise_data_joints)
     mean_all_parts = []
     cov_all_parts = []
 
     for body_part_index in range(number_of_body_parts):
-        mean, cov = find_unary_potential_gaussian_per_part(partwise_data_pose[body_part_index], partwise_data_joints[body_part_index])
+        mean, cov = find_unary_potential_gaussian_per_part(
+                partwise_data_pose[body_part_index], partwise_data_joints[body_part_index])
         mean_all_parts.append(mean)
         cov_all_parts.append(cov)
     return mean_all_parts, cov_all_parts
 
 
-def get_pairwise_pots(partwise_data_pose, partwise_data_joints):
-    pairwise_pots_mean = {}
-    pairwise_pots_cov = {}
-    for part1_index, part2_index in potential_pairs.iteritems():
-        pairwise_pots_mean[part1_index], pairwise_pots_cov[part1_index] = find_pariwise_potential_gaussian(partwise_data_pose[part1_index], partwise_data_joints[part1_index], partwise_data_pose[part2_index], partwise_data_joints[part2_index])
-    return pairwise_pots_mean, pairwise_pots_cov
+def create_factor_graph(mean_all_body_parts, cov_all_body_parts):
+    """
+    Creates a representation of the Factor Graph
+    Lists and the FactorGraphNode class is used
+
+    INPUTS:
+    ------------
+    mean_all_body_parts, cov_all_body_parts:
+        The mean and covariance lists for each body part
+
+    OUTPUTS:
+    ------------
+    factor_graph_list:
+    List of 24 elements
+    Each element corresponds to the body part at that index
+    Each element is an object of the FactorGraphNode class
+    """
+    factor_graph_list = []
+    number_of_body_parts = len(mean_all_body_parts)
+
+    for body_part_index in range(number_of_body_parts):
+        node = FactorGraphNode(body_part_index, 
+                mean_all_body_parts[body_part_index], cov_all_body_parts[body_part_index])
+        factor_graph_list.append(node)
+    return factor_graph_list
+
+
+def update_pairwise_potentials(body_part_node, partwise_data_pose, partwise_data_joints):
+    neighbors = nodes_with_neighbors[body_part_node.node_index]
+    body_part_node.update_neighbors(neighbors)
+
+    curr_node_joint_data = partwise_data_joints[body_part_node.node_index]
+    curr_node_pose_data = partwise_data_pose[body_part_node.node_index]
+
+    for neighbor_index in neighbors:
+        neighbor_joint_data = partwise_data_joints[neighbor_index]
+        neighbor_pose_data = partwise_data_pose[neighbor_index]
+
+        if neighbor_index < body_part_node.node_index:
+            mean, cov = find_pariwise_potential_gaussian(
+                    neighbor_pose_data, neighbor_joint_data, curr_node_pose_data, curr_node_joint_data)
+        else:
+            mean, cov = find_pariwise_potential_gaussian(
+                    curr_node_pose_data, curr_node_joint_data, neighbor_pose_data, neighbor_joint_data)
+        body_part_node.update_pairwise_pot(neighbor_index, mean, cov)
 
 
 def main():
     partwise_data_pose, partwise_data_joints = prepare_data()
-    mean_all_parts, cov_all_parts = get_unary_pots_each_part(partwise_data_pose, partwise_data_joints)
 
-    # Pairwise potentials
-    import ipdb; ipdb.set_trace()
-    pairwise_pots_mean, pairwise_pots_cov = get_pairwise_pots(partwise_data_pose, partwise_data_joints)
-    # Ternary and quarternary potentials
-    pairwise_pots_mean[0], pairwise_pots_cov[0] = find_ternary_potentials(partwise_data_pose[0], partwise_data_joints[0], partwise_data_pose[1], partwise_data_joints[1], partwise_data_pose[2], partwise_data_joints[2], partwise_data_pose[3], partwise_data_joints[3])
-    pairwise_pots_mean[9], pairwise_pots_cov[9] = find_quarternary_pots(partwise_data_pose[9], partwise_data_joints[9], partwise_data_pose[6], partwise_data_joints[6], partwise_data_pose[12], partwise_data_joints[12], partwise_data_pose[13], partwise_data_joints[13], partwise_data_pose[14], partwise_data_joints[14])
+    # Unary Potentials
+    mean_all_body_parts, cov_all_body_parts = get_unary_pots_each_part(
+                            partwise_data_pose, partwise_data_joints)
+
+    factor_graph_list = create_factor_graph(mean_all_body_parts, cov_all_body_parts)
+
+    # Update pairwise potentials for each body part in the factor graph
+    for body_part_node in factor_graph_list:
+        update_pairwise_potentials(body_part_node, partwise_data_pose, partwise_data_joints)
 
 
 if __name__ == "__main__":

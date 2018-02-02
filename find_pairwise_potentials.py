@@ -47,8 +47,7 @@ def find_pariwise_potential_gaussian(part1_pose, part1_joints, part2_pose, part2
     Each row of data in the input variables should match the body model 
         that they are extracted from
 
-	Another point, part1 should be the body part with the lower indice.
-	The distribution is also created as such
+	IMPORTANT, part1 should be the body part with the lower index.
 
 
     Inputs:
