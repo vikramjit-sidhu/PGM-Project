@@ -1,5 +1,6 @@
 import numpy as np
 
+# Currently this function is not used
 def get_relative_rotation(r1, r2):
     """
     Find relative rotation between two rotation vectors
@@ -28,6 +29,7 @@ def get_relative_rotation(r1, r2):
     return r_relative
 
 
+# Nor is this used
 def get_relative_rotation_all_data_pts(rot_vectors_1, rot_vectors_2):
     N = rot_vectors_1.shape[0]
     combined_rotation = np.empty((N, 3))
@@ -44,6 +46,10 @@ def find_pariwise_potential_gaussian(part1_pose, part1_joints, part2_pose, part2
 
     Each row of data in the input variables should match the body model 
         that they are extracted from
+
+	Another point, part1 should be the body part with the lower indice.
+	The distribution is also created as such
+
 
     Inputs:
     ------------
@@ -64,10 +70,7 @@ def find_pariwise_potential_gaussian(part1_pose, part1_joints, part2_pose, part2
         Covariance Matrix 
     """
 
-    combined_rotation = get_relative_rotation_all_data_pts(part1_pose, part2_pose)
-    combined_joint_locations = part1_joints - part2_joints
-
-    data = np.column_stack((combined_rotation, combined_joint_locations))
+    data = np.column_stack((part1_joints, part1_pose, part2_joints, part2_pose))
 
     # The axis=0 means we find mean along the columns
     mean = np.mean(data, axis=0)
@@ -75,6 +78,8 @@ def find_pariwise_potential_gaussian(part1_pose, part1_joints, part2_pose, part2
     return mean, cov
 
 
+# The below functions aren't used either
+# We have a lot of unused code, deal with it!
 def find_ternary_potentials(part1_pose, part1_joints, part2_pose, part2_joints, part3_pose, part3_joints, part4_pose, part4_joints):
     combined_pose_1_2 = get_relative_rotation_all_data_pts(part1_pose, part2_pose)
     combined_joints_1_2 = part1_joints - part2_joints

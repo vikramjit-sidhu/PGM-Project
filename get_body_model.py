@@ -1,17 +1,8 @@
 import numpy as np
-<<<<<<< HEAD
 from visualize_point_cloud import visualize_point_cloud
 import cv2
 from extract_parts import *
-import ipdb
-def load_body_model():
-    #vertices = np.load('data/verts.npy')
-    #faces = np.load('data/faces.npy')
-    pose_data = np.load('/home/garvita/Documents/PGM/PGM-Project-master/result/pose_data_1.npy')
-    print(pose_data)
-    centroid_data = np.load('/home/garvita/Documents/PGM/PGM-Project-master/result/centroid_data_1.npy')
-    print(centroid_data)
-    return pose_data
+
 
 def load_body_model():
     vertices = np.load('data/verts.npy')
@@ -55,7 +46,6 @@ def load_smpl_body_model():
 
             raw_input('press')
 
-        ########
         v_file = 'result/vdata_' + str(k) + '.npy'
         f_file = 'result/fdata_' + str(k) + '.npy'
         p_file = 'result/pose_data_' + str(k) + '.npy'
@@ -69,12 +59,5 @@ def load_smpl_body_model():
 
 
 if __name__ == "__main__":
-    load_smpl_body_model()
-    load_body_model()
-    
-    # changing the pose of the model
-    male_model.pose[:] = np.random.rand(male_model.pose.size) * .2
-
-    vertices = male_model.r
-    faces = male_model.f
-    return vertices, faces
+    vertices, faces = load_body_model()
+    extract_each_part(vertices, faces)
