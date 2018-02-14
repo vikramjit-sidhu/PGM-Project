@@ -1,10 +1,10 @@
 import numpy as np
 
-data_path = "result/"
+data_path = "data/"
 amount_of_data = 50
 
-joint_locations_filename_intial = "joint_data_"
-pose_data_filename_initial = "pose_data_"
+joint_locations_filename_intial = "joint_data_2"
+pose_data_filename_initial = "pose_data_2"
 file_extension = ".npy"
 
 
@@ -27,12 +27,13 @@ def load_data():
         Similar to joint_data for pose, i.e. rotation vectors
 
     """
-    joint_data = []
-    pose_data = []
-    for index in range(1, amount_of_data+1):
-        joint_filename = data_path + joint_locations_filename_intial + str(index) + file_extension
-        joint_data.append(np.load(open(joint_filename, "rb")))
+    joint_filename = data_path + joint_locations_filename_intial + file_extension
+    pose_filename = data_path + pose_data_filename_initial + file_extension
 
-        pose_data_filename = data_path + pose_data_filename_initial + str(index) + file_extension
-        pose_data.append(np.load(open(pose_data_filename, "rb")))
+    joint_data = np.load(open(joint_filename, "rb"))
+    joint_data = joint_data.reshape(918,24,3)
+    
+    pose_data = np.load(open(pose_filename, "rb"))
+    pose_data = pose_data.reshape(918,24,3)
+
     return joint_data, pose_data

@@ -1,5 +1,6 @@
 
-from prepare_data import prepare_data
+# from prepare_data import prepare_data
+from load_data import load_data
 from find_unary_potentials import find_unary_potential_gaussian_per_part
 from find_pairwise_potentials import find_pariwise_potential_gaussian
 from factor_graph_node import FactorGraphNode
@@ -13,6 +14,9 @@ nodes_with_neighbors = {
                     , 13:[0,4], 14:[9,17], 15:[12], 16:[13,18], 17:[14,19], 18:[16,20]
                     , 19:[17,21], 20:[18,22], 21:[19,23], 22:[20], 23:[21]
                     }
+
+
+import numpy as np
 
 def get_unary_pots_each_part(partwise_data_pose, partwise_data_joints):
     """
@@ -91,20 +95,28 @@ def update_pairwise_potentials(body_part_node, partwise_data_pose, partwise_data
 
 
 def main():
-    partwise_data_pose, partwise_data_joints = prepare_data()
+    joint_data_nodewise, pose_data_nodewise = load_data()
 
-    # Unary Potentials
-    mean_all_body_parts, cov_all_body_parts = get_unary_pots_each_part(
-                            partwise_data_pose, partwise_data_joints)
+    joint_data_combined = joint_data_nodewise.reshape(918, 72)
+    pose_data_combined = pose_data_nodewise.reshape(918, 72)
 
-    factor_graph_list = create_factor_graph(mean_all_body_parts, cov_all_body_parts)
+    pose_mean = np.mean(pose_data_combined, axis=0)
+    pose_cov = np.cov(pose_data_combined.T)
 
-    # Update pairwise potentials for each body part in the factor graph
-    for body_part_node in factor_graph_list:
-        update_pairwise_potentials(body_part_node, partwise_data_pose, partwise_data_joints)
+    inferred_pose = np.random.multivariate_normal(mean=pose_mean, cov=pose_cov)
+
+    # # Unary Potentials
+    # mean_all_body_parts, cov_all_body_parts = get_unary_pots_each_part(
+    #                         partwise_data_pose, partwise_data_joints)
+
+    # factor_graph_list = create_factor_graph(mean_all_body_parts, cov_all_body_parts)
+
+    # # Update pairwise potentials for each body part in the factor graph
+    # for body_part_node in factor_graph_list:
+    #     update_pairwise_potentials(body_part_node, partwise_data_pose, partwise_data_joints)
     
     # Performing inference
-    inferred_pose_each_part, inferred_joints_each_part = get_pose_joint_for_each_part(factor_graph_list)
+    # inferred_pose_each_part, inferred_joints_each_part = get_pose_joint_for_each_part(factor_graph_list)
 
 
 if __name__ == "__main__":
