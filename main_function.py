@@ -3,6 +3,7 @@ from prepare_data import prepare_data
 from find_unary_potentials import find_unary_potential_gaussian_per_part
 from find_pairwise_potentials import find_pariwise_potential_gaussian
 from factor_graph_node import FactorGraphNode
+from perform_inference import get_pose_joint_for_each_part
 
 # Each key of the below dictionary is a body part index
 # The list elements are the neighbors of the body parts
@@ -55,9 +56,9 @@ def create_factor_graph(mean_all_body_parts, cov_all_body_parts):
     OUTPUTS:
     ------------
     factor_graph_list:
-    List of 24 elements
-    Each element corresponds to the body part at that index
-    Each element is an object of the FactorGraphNode class
+        List of the number of body parts
+        Each element corresponds to the body part at that index
+        Each element is an object of the FactorGraphNode class
     """
     factor_graph_list = []
     number_of_body_parts = len(mean_all_body_parts)
@@ -101,6 +102,9 @@ def main():
     # Update pairwise potentials for each body part in the factor graph
     for body_part_node in factor_graph_list:
         update_pairwise_potentials(body_part_node, partwise_data_pose, partwise_data_joints)
+    
+    # Performing inference
+    inferred_pose_each_part, inferred_joints_each_part = get_pose_joint_for_each_part(factor_graph_list)
 
 
 if __name__ == "__main__":
