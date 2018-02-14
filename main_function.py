@@ -5,6 +5,7 @@ from find_unary_potentials import find_unary_potential_gaussian_per_part
 from find_pairwise_potentials import find_pariwise_potential_gaussian
 from factor_graph_node import FactorGraphNode
 from perform_inference import get_pose_joint_for_each_part
+from visualize_point_cloud import visualize_point_cloud
 
 # Each key of the below dictionary is a body part index
 # The list elements are the neighbors of the body parts
@@ -100,10 +101,30 @@ def main():
     joint_data_combined = joint_data_nodewise.reshape(918, 72)
     pose_data_combined = pose_data_nodewise.reshape(918, 72)
 
+    joint_mean = np.mean(joint_data_combined, axis=0)
+    joint_cov = np.cov(joint_data_combined.T)
+
     pose_mean = np.mean(pose_data_combined, axis=0)
     pose_cov = np.cov(pose_data_combined.T)
 
     inferred_pose = np.random.multivariate_normal(mean=pose_mean, cov=pose_cov)
+    inferred_joint = np.random.multivariate_normal(mean=joint_mean, cov=joint_cov)
+
+    # Visualize data
+    from smpl.serialization import load_model
+    male_model = load_model("data/basicmodel_m_lbs_10_207_0_v1.0.0.pkl")
+    vertices = male_model.r
+    faces = male_model.f
+    # visualize_point_cloud(vertices, faces)
+    # raw_input("press enter to continue")
+
+    male_model.pose[:] = inferred_pose
+    male_model.J = inferred_joint.reshape(24,3)
+    vertices = male_model.r
+    faces = male_model.f
+
+    visualize_point_cloud(vertices, faces)
+    raw_input("press enter to continue")
 
     # # Unary Potentials
     # mean_all_body_parts, cov_all_body_parts = get_unary_pots_each_part(
