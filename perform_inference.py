@@ -111,7 +111,6 @@ def get_pose_joint_for_each_part(factor_graph_list):
             pose, joint_location = get_node_val(neighbor_index, pose_matrix, joint_location_matrix)
             cond_var_value = np.concatenate([pose, joint_location])
 
-            import ipdb; ipdb.set_trace()
             # Conditioning on the pairwise potentials to get resulting distribution
             cond_mean, cond_cov = condition_on_pairwise_potential(node_index, neighbor_index
                         , pairwise_mean, pairwise_cov, cond_var_value)

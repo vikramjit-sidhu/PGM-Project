@@ -49,3 +49,38 @@ def prepare_data():
         partwise_data_joints.append(get_data_for_body_part(joint_data, body_part_num))
     
     return partwise_data_pose, partwise_data_joints
+
+
+def prepare_data_new_data():
+    """
+    The joint_data and pose_data lists contain in each element a np array.
+    Each np array is 24x3 and corresponds to the data for a single pose
+    Each row of the numpy array corresponds to a body part
+
+
+    This method 
+
+    OUTPUTS:
+    ------------
+    partwise_data_pose:
+        A python list, each element of the list contains all the data 
+        for a part.
+        e.g. the first element of the list is a 918x3 np array.
+        918 -> # of data points
+        3 -> rotation vectors
+        This array will contain all the data points for the first body part
+
+    partwise_data_joints:
+        Similar to partwise_data_pose for the joints
+
+    """
+    # From the below method, we get arrays of shape 918x24x3
+    joint_data, pose_data = load_data()
+    partwise_joint_data = []
+    partwise_pose_data = []
+
+    for index in range(number_of_body_parts):
+        partwise_joint_data.append(joint_data[:,index,:])
+        partwise_pose_data.append(pose_data[:,index,:])
+
+    return partwise_pose_data, partwise_joint_data

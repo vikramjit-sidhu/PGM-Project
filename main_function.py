@@ -1,6 +1,6 @@
 
 # from prepare_data import prepare_data
-from load_data import load_data
+from prepare_data import prepare_data_new_data
 from find_unary_potentials import find_unary_potential_gaussian_per_part
 from find_pairwise_potentials import find_pariwise_potential_gaussian
 from factor_graph_node import FactorGraphNode
@@ -18,6 +18,15 @@ nodes_with_neighbors = {
 
 
 import numpy as np
+
+def convert_joint_data_tocm(partwise_data_joints):
+    """
+    Inputs a list of 24 elements (for each body part)
+    Converts the elements to cm
+    """
+    partwise_data_joints_cm = [j * 100 for j in partwise_data_joints]
+    return partwise_data_joints_cm
+
 
 def get_unary_pots_each_part(partwise_data_pose, partwise_data_joints):
     """
@@ -96,48 +105,23 @@ def update_pairwise_potentials(body_part_node, partwise_data_pose, partwise_data
 
 
 def main():
-    joint_data_nodewise, pose_data_nodewise = load_data()
+    partwise_data_pose, partwise_data_joints = prepare_data_new_data()
 
-    joint_data_combined = joint_data_nodewise.reshape(918, 72)
-    pose_data_combined = pose_data_nodewise.reshape(918, 72)
+    partwise_data_joints = convert_joint_data_tocm(partwise_data_joints)
 
-    joint_mean = np.mean(joint_data_combined, axis=0)
-    joint_cov = np.cov(joint_data_combined.T)
+    # Unary Potentials
+    mean_all_body_parts, cov_all_body_parts = get_unary_pots_each_part(
+                            partwise_data_pose, partwise_data_joints)
 
-    pose_mean = np.mean(pose_data_combined, axis=0)
-    pose_cov = np.cov(pose_data_combined.T)
+    factor_graph_list = create_factor_graph(mean_all_body_parts, cov_all_body_parts)
 
-    inferred_pose = np.random.multivariate_normal(mean=pose_mean, cov=pose_cov)
-    inferred_joint = np.random.multivariate_normal(mean=joint_mean, cov=joint_cov)
+    # Update pairwise potentials for each body part in the factor graph
+    for body_part_node in factor_graph_list:
+        update_pairwise_potentials(body_part_node, partwise_data_pose, partwise_data_joints)
 
-    # Visualize data
-    from smpl.serialization import load_model
-    male_model = load_model("data/basicmodel_m_lbs_10_207_0_v1.0.0.pkl")
-    vertices = male_model.r
-    faces = male_model.f
-    # visualize_point_cloud(vertices, faces)
-    # raw_input("press enter to continue")
-
-    male_model.pose[:] = inferred_pose
-    male_model.J = inferred_joint.reshape(24,3)
-    vertices = male_model.r
-    faces = male_model.f
-
-    visualize_point_cloud(vertices, faces)
-    raw_input("press enter to continue")
-
-    # # Unary Potentials
-    # mean_all_body_parts, cov_all_body_parts = get_unary_pots_each_part(
-    #                         partwise_data_pose, partwise_data_joints)
-
-    # factor_graph_list = create_factor_graph(mean_all_body_parts, cov_all_body_parts)
-
-    # # Update pairwise potentials for each body part in the factor graph
-    # for body_part_node in factor_graph_list:
-    #     update_pairwise_potentials(body_part_node, partwise_data_pose, partwise_data_joints)
-    
+    import ipdb; ipdb.set_trace()
     # Performing inference
-    # inferred_pose_each_part, inferred_joints_each_part = get_pose_joint_for_each_part(factor_graph_list)
+    inferred_pose_each_part, inferred_joints_each_part = get_pose_joint_for_each_part(factor_graph_list)
 
 
 if __name__ == "__main__":
