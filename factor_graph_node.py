@@ -2,7 +2,7 @@
 class FactorGraphNode:
     
     def __init__(self, node_index, unary_pot_mean, unary_pot_cov):
-		# Keep variables here for the joint locations and rotation matrices?
+        # Keep variables here for the joint locations and rotation matrices?
 
         self.node_index = node_index
         self.neighbors = []

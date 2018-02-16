@@ -37,3 +37,31 @@ def find_unary_potential_gaussian_per_part(pose_vector, joint_locations):
     cov = np.cov(data.T)   
 
     return mean, cov
+
+
+
+def find_unary_potential_gaussian_per_part_only_pose(pose_data):
+    """
+    Fits the data in pose_data to a multivariate normal distribution
+    
+    N -> Number of data points for the body part
+
+    Inputs:
+    ------------
+    pose_data, Nx3 Matrix
+        each row corresponds to the rotation vector for the body part
+
+
+    Outputs
+    ------------
+    mean, 3x1 array
+        the mean for the data
+
+    Covariance, 3x3 matrix
+        Covariance Matrix 
+    """
+    # The axis=0 means we find mean along the columns
+    mean = np.mean(pose_data, axis=0)
+    cov = np.cov(pose_data.T)   
+
+    return mean, cov

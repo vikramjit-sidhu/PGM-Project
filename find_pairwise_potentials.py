@@ -1,6 +1,35 @@
 import numpy as np
 
 
+def find_pariwise_potential_gaussian_only_pose(part1_pose, part2_pose):
+    """
+    Fit a multiavariate Gaussian to the parameters describing two parts
+
+    N -> Number of data points
+
+    IMPORTANT, part1 should be the body part with the lower index.
+
+    Inputs:
+    ------------
+    part1_pose, Nx3 Matrix
+        each row corresponds to a data point for the rotation vector of the body part
+
+    Outputs
+    ------------
+    mean, 6x1 array
+        the mean for the data
+
+    Covariance, 6x6 matrix
+        Covariance Matrix 
+    """
+    data = np.column_stack((part1_pose, part2_pose))
+
+    # The axis=0 means we find mean along the columns
+    mean = np.mean(data, axis=0)
+    cov = np.cov(data.T)
+    return mean, cov
+
+
 def find_pariwise_potential_gaussian(part1_pose, part1_joints, part2_pose, part2_joints):
     """
     Fit a multiavariate Gaussian to the parameters describing two parts
