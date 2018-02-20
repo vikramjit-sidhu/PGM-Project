@@ -29,6 +29,37 @@ def find_pariwise_potential_gaussian_only_pose(part1_pose, part2_pose):
     cov = np.cov(data.T)
     return mean, cov
 
+from sklearn import mixture
+
+def find_pariwise_potential_mix_gaussian_only_pose(part1_pose, part2_pose):
+    """
+    Fit a multiavariate Gaussian to the parameters describing two parts
+
+    N -> Number of data points
+
+    IMPORTANT, part1 should be the body part with the lower index.
+
+    Inputs:
+    ------------
+    part1_pose, Nx3 Matrix
+        each row corresponds to a data point for the rotation vector of the body part
+
+    Outputs
+    ------------
+    mean, 6x1 array
+        the mean for the data
+
+    Covariance, 6x6 matrix
+        Covariance Matrix
+    """
+    data = np.column_stack((part1_pose, part2_pose))
+
+    # Fit a Gaussian mixture with EM using 3 components
+    gmm = mixture.GaussianMixture(n_components=3, covariance_type='full').fit(data)
+    mean = gmm.means_
+    cov = gmm.covariances_
+    return mean, cov
+
 
 def find_pariwise_potential_gaussian(part1_pose, part1_joints, part2_pose, part2_joints):
     """

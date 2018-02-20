@@ -1,12 +1,13 @@
 from prepare_data import prepare_data_new_data
-from find_unary_potentials import find_unary_potential_gaussian_per_part_only_pose
+from find_unary_potentials import find_unary_potential_gaussian_per_part_only_pose, find_unary_potential_mix_gaussian_per_part_only_pose
 from factor_graph_node import FactorGraphNode
-from find_pairwise_potentials import find_pariwise_potential_gaussian_only_pose
-from perform_inference import infer_pose_each_part
+from find_pairwise_potentials import find_pariwise_potential_gaussian_only_pose, find_pariwise_potential_mix_gaussian_only_pose
+from perform_inference import infer_pose_each_part, infer_pose_each_part_mix_gaussian
 from visualize_point_cloud import visualize_point_cloud
-
+import ipdb
 import numpy as np
 
+use_distribution = 'mixGauss' #'mixGauss' or 'Gauss'
 nodes_with_neighbors = {
                     0:[1,2,3], 1:[0,4], 2:[0,5], 3:[0,6], 4:[1,7], 5:[2,8], 6:[3,9]
                     , 7:[4,10], 8:[5,11], 9:[6,12,13,14], 10:[7], 11:[8], 12:[15,9]
@@ -35,11 +36,21 @@ def get_unary_pots_each_part(partwise_data_pose):
     mean_all_parts = []
     cov_all_parts = []
 
-    for body_part_index in range(number_of_body_parts):
-        mean, cov = find_unary_potential_gaussian_per_part_only_pose(partwise_data_pose[body_part_index])
-        mean_all_parts.append(mean)
-        cov_all_parts.append(cov)
-    return mean_all_parts, cov_all_parts
+    if use_distribution == 'Gauss':
+
+        for body_part_index in range(number_of_body_parts):
+            mean, cov = find_unary_potential_gaussian_per_part_only_pose(partwise_data_pose[body_part_index])
+            mean_all_parts.append(mean)
+            cov_all_parts.append(cov)
+        return mean_all_parts, cov_all_parts
+
+    if use_distribution == 'mixGauss':
+
+        for body_part_index in range(number_of_body_parts):
+            mean, cov = find_unary_potential_mix_gaussian_per_part_only_pose(partwise_data_pose[body_part_index])
+            mean_all_parts.append(mean)
+            cov_all_parts.append(cov)
+        return mean_all_parts, cov_all_parts
 
 
 def create_factor_graph(mean_all_body_parts, cov_all_body_parts):
@@ -88,7 +99,7 @@ def update_pairwise_potentials(body_part_node, partwise_data_pose):
     OUTPUTS:
     ------------
     There are NO OUTPUTS
-    However the body_part_node object is update by reference
+    However the body_part_node object is updated by reference
     """
     neighbors = nodes_with_neighbors[body_part_node.node_index]
     body_part_node.update_neighbors(neighbors)
@@ -99,13 +110,20 @@ def update_pairwise_potentials(body_part_node, partwise_data_pose):
         neighbor_pose_data = partwise_data_pose[neighbor_index]
 
         if neighbor_index < body_part_node.node_index:
-            mean, cov = find_pariwise_potential_gaussian_only_pose(
+            if use_distribution == 'Gauss':
+                mean, cov = find_pariwise_potential_gaussian_only_pose(
+                    neighbor_pose_data, curr_node_pose_data)
+            if use_distribution == 'mixGauss':
+                mean, cov = find_pariwise_potential_mix_gaussian_only_pose(
                     neighbor_pose_data, curr_node_pose_data)
         else:
-            mean, cov = find_pariwise_potential_gaussian_only_pose(
+            if use_distribution == 'Gauss':
+                mean, cov = find_pariwise_potential_gaussian_only_pose(
                     curr_node_pose_data, neighbor_pose_data)
+            if use_distribution == 'mixGauss':
+                mean, cov = find_pariwise_potential_mix_gaussian_only_pose(
+                    neighbor_pose_data, curr_node_pose_data)
         body_part_node.update_pairwise_pot(neighbor_index, mean, cov)
-
 
 def visualize_body_model(poses):
     from smpl.serialization import load_model
@@ -128,7 +146,7 @@ def visualize_body_model(poses):
 
 def main():
     partwise_data_pose, partwise_data_joints = prepare_data_new_data()
-
+    ipdb.set_trace()
     # We ignore the joint data for now
 
     # Unary Potentials
@@ -142,7 +160,7 @@ def main():
         update_pairwise_potentials(body_part_node, partwise_data_pose)
 
     # Performing inference
-    inferred_pose_each_part = infer_pose_each_part(factor_graph_list)
+    inferred_pose_each_part = infer_pose_each_part_mix_gaussian(factor_graph_list)
 
     # Visualizing the result
     visualize_body_model(inferred_pose_each_part)
