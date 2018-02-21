@@ -2,8 +2,6 @@ from prepare_data import prepare_data_new_data
 from find_unary_potentials import find_unary_potential_gaussian_per_part_only_pose, find_unary_potential_mix_gaussian_per_part_only_pose
 from factor_graph_node import FactorGraphNodeMixtureGaussian
 from find_pairwise_potentials import find_pariwise_potential_gaussian_only_pose, find_pariwise_potential_mix_gaussian_only_pose
-from perform_inference import infer_pose_each_part, infer_pose_each_part_mix_gaussian
-from visualize_point_cloud import visualize_point_cloud
 
 import numpy as np
 
@@ -13,6 +11,9 @@ nodes_with_neighbors = {
                     , 13:[0,4], 14:[9,17], 15:[12], 16:[13,18], 17:[14,19], 18:[16,20]
                     , 19:[17,21], 20:[18,22], 21:[19,23], 22:[20], 23:[21]
                     }
+
+pickle_filename = "mixture_gaussians_factor_graph.obj"
+
 
 def get_unary_pots_each_part(partwise_data_pose):
     """
@@ -104,25 +105,6 @@ def update_pairwise_potentials(body_part_node, partwise_data_pose):
         body_part_node.update_pairwise_pot(neighbor_index, pairwise_pot_for_part)
 
 
-def visualize_body_model(poses):
-    from smpl.serialization import load_model
-    male_model = load_model("data/basicmodel_m_lbs_10_207_0_v1.0.0.pkl")
-
-    # Visualize base pose
-    # vertices = male_model.r
-    # faces = male_model.f
-    # visualize_point_cloud(vertices, faces)
-    # raw_input("press enter to continue")
-
-    # Visulizing inferred pose
-    male_model.pose[:] = poses.flatten()
-    # male_model.J = inferred_joint.reshape(24,3)
-    vertices = male_model.r
-    faces = male_model.f
-    visualize_point_cloud(vertices, faces)
-    raw_input("press enter to continue")
-
-
 def main():
     partwise_data_pose, partwise_data_joints = prepare_data_new_data()
     # We ignore the joint data for now
@@ -137,11 +119,11 @@ def main():
     for body_part_node in factor_graph_list:
         update_pairwise_potentials(body_part_node, partwise_data_pose)
 
-    # Performing inference
-    inferred_pose_each_part = infer_pose_each_part_mix_gaussian(factor_graph_list)
-
-    # Visualizing the result
-    visualize_body_model(inferred_pose_each_part)
+    # Saving the factor graph to perform inference later
+    import pickle
+    file = open(pickle_filename, "w")
+    pickle.dump(factor_graph_list, file)
+    file.close()
 
 
 if __name__ == "__main__":

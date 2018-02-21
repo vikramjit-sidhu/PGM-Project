@@ -3,7 +3,7 @@ from multivariate_normal_dist import multiply_two_multivariate_normal_distributi
 
 import numpy as np
 
-num_samples = 10000
+num_samples = 2400
 
 
 def generate_initial_joint_locations(num_body_parts):

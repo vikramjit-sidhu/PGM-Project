@@ -2,7 +2,7 @@ from prepare_data import prepare_data_new_data
 from find_unary_potentials import find_unary_potential_gaussian_per_part_only_pose, find_unary_potential_mix_gaussian_per_part_only_pose
 from factor_graph_node import FactorGraphNode
 from find_pairwise_potentials import find_pariwise_potential_gaussian_only_pose, find_pariwise_potential_mix_gaussian_only_pose
-from perform_inference import infer_pose_each_part, infer_pose_each_part_mix_gaussian
+from perform_inference import infer_pose_each_part
 from visualize_point_cloud import visualize_point_cloud
 
 import numpy as np
@@ -141,7 +141,7 @@ def main():
         update_pairwise_potentials(body_part_node, partwise_data_pose)
 
     # Performing inference
-    inferred_pose_each_part = infer_pose_each_part_mix_gaussian(factor_graph_list)
+    inferred_pose_each_part = infer_pose_each_part(factor_graph_list)
 
     # Visualizing the result
     visualize_body_model(inferred_pose_each_part)
