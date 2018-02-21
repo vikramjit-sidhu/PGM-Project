@@ -1,11 +1,15 @@
 import numpy as np
 
 data_path = "data/"
-amount_of_data = 50
 
 joint_locations_filename_intial = "joint_data_2"
-pose_data_filename_initial = "pose_data_2"
+pose_data_filename_initial = "pose_data_194389"
 file_extension = ".npy"
+
+num_pose_data_points = 194388
+num_joint_data_points = 918
+
+num_body_parts = 24
 
 
 def load_data():
@@ -31,9 +35,9 @@ def load_data():
     pose_filename = data_path + pose_data_filename_initial + file_extension
 
     joint_data = np.load(open(joint_filename, "rb"))
-    joint_data = joint_data.reshape(918,24,3)
+    joint_data = joint_data.reshape(num_joint_data_points, num_body_parts, 3)
     
     pose_data = np.load(open(pose_filename, "rb"))
-    pose_data = pose_data.reshape(918,24,3)
+    pose_data = pose_data.reshape(num_pose_data_points, num_body_parts, 3)
 
     return joint_data, pose_data

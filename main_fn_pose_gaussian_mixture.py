@@ -139,7 +139,7 @@ def main():
 
     # Performing inference
     inferred_pose_each_part = infer_pose_each_part_mix_gaussian(factor_graph_list)
-    import ipdb; ipdb.set_trace()
+
     # Visualizing the result
     visualize_body_model(inferred_pose_each_part)
 
