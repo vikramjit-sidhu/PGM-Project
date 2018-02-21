@@ -2,9 +2,8 @@
 from multivariate_normal_dist import multiply_two_multivariate_normal_distributions_pdfs, conditional_distribution_multivariate_normal
 
 import numpy as np
-import ipdb
 
-num_samples = 100000
+num_samples = 10000
 
 
 def generate_initial_joint_locations(num_body_parts):
@@ -31,14 +30,6 @@ def get_node_val(node_index, pose_matrix, joint_location_matrix):
     pose = pose_matrix[node_index]
     joint_location = joint_location_matrix[node_index]
     return pose, joint_location
-
-
-def get_node_val_pose_only(node_index, pose_matrix):
-    """
-    Extract the pose from the matrix for a node with index node_index
-    """
-    pose = pose_matrix[node_index]
-    return pose
 
 
 def condition_on_pairwise_potential(node_index, conditioning_node_index, mean, cov, cond_var_value):
@@ -134,6 +125,13 @@ def get_pose_joint_for_each_part(factor_graph_list):
     return pose_matrix, joint_location_matrix
 
 
+def get_node_val_pose_only(node_index, pose_matrix):
+    """
+    Extract the pose from the matrix for a node with index node_index
+    """
+    pose = pose_matrix[node_index]
+    return pose
+
 
 def infer_pose_each_part(factor_graph_list):
     """
@@ -198,6 +196,44 @@ def infer_pose_each_part(factor_graph_list):
     return inferred_pose
 
 
+
+def find_distribution_to_sample(mixture_weights):
+    """
+    Finds which Gaussian Distribution to choose from in a mixture of 3 Gaussians
+    The chosen distribution can then be sampled from
+
+    INPUTS:
+    ------------
+    mixture_weights
+        A list of 3 elements, which correspond to the weights for each of the 3 distributions
+
+
+    OUTPUTS:
+    ------------
+    choosen_gaussian_index
+        The index of the distribution to use
+        This index corresponds to the index of the weight in the mixture_weights list
+    """
+    if isinstance(mixture_weights, np.ndarray):
+        mixture_weights = mixture_weights.tolist()
+
+    mixture_weights_sorted = sorted(mixture_weights)
+    uniform_sample = np.random.uniform()
+
+    # Finding which interval the uniform sample lies in
+    curr_range_end = 0
+    for i in range(len(mixture_weights_sorted)):
+        curr_range_end += mixture_weights_sorted[i]
+        if uniform_sample < curr_range_end:
+            weight_chosen = mixture_weights_sorted[i]
+            break
+
+    # Extracting the original index from the list
+    choosen_gaussian_index = mixture_weights.index(weight_chosen)
+
+    return choosen_gaussian_index
+
+
 def infer_pose_each_part_mix_gaussian(factor_graph_list):
     """
     Performs inference on the factor graph to get pose data for each node
@@ -224,25 +260,29 @@ def infer_pose_each_part_mix_gaussian(factor_graph_list):
 
     # Generate nodes which will be selected for Gibbs Sampling
     node_indices_array = np.ndarray.tolist(np.random.randint(0, 24, size=num_samples))
-    mix_component = np.ndarray.tolist(np.random.randint(0, 3, size=num_samples))
-    ipdb.set_trace()
-    i = 0
+    
     # Start Gibbs Sampling over Factor Graph
     for node_index in node_indices_array:
         node_to_update = factor_graph_list[node_index]
 
-        # The below variables mean, the combined distribution of the node which we
-        # sample from
-        resulting_mean = node_to_update.unary_pot_mean[mix_component[i]]
-        resulting_cov = node_to_update.unary_pot_cov[mix_component[i]]
+        # Finding which mixture Gaussian distribution to use for unary pot
+        index_unary_distribution = find_distribution_to_sample(node_to_update.unary_pot.weights_)
 
-        # import ipdb; ipdb.set_trace()
+        # Creating combined variables for mean and covariance
+        resulting_mean = node_to_update.unary_pot.means_[index_unary_distribution]
+        resulting_cov = node_to_update.unary_pot.covariances_[index_unary_distribution]
+
         # Building a resulting distribution by combining all the distributions
         for neighbor_index in node_to_update.neighbors:
-            # We find parameters of joint distribution of current node and neighbor
-            pairwise_mean = node_to_update.pairwise_pots_mean[neighbor_index][mix_component[i]]
-            pairwise_cov = node_to_update.pairwise_pots_cov[neighbor_index][mix_component[i]]
-            ipdb.set_trace()
+            # Gaussian Mixture instance for pairwise potential
+            gauss_mixture_pairwise_pots = node_to_update.pairwise_pots[neighbor_index]
+
+            # Finding which mixture Gaussian distribution to use for pairwise pot
+            distribution_index = find_distribution_to_sample(gauss_mixture_pairwise_pots.weights_)
+
+            pairwise_mean = gauss_mixture_pairwise_pots.means_[distribution_index]
+            pairwise_cov = gauss_mixture_pairwise_pots.covariances_[distribution_index]
+
             # Finding value of conditioned variable (neighbor)
             pose = get_node_val_pose_only(neighbor_index, inferred_pose)
 
@@ -258,5 +298,5 @@ def infer_pose_each_part_mix_gaussian(factor_graph_list):
 
         # Updating the value in the overall pose matrix
         inferred_pose[node_to_update.node_index] = pose_curr_node
-        i = i + 1
+
     return inferred_pose

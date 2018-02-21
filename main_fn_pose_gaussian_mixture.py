@@ -1,6 +1,6 @@
 from prepare_data import prepare_data_new_data
 from find_unary_potentials import find_unary_potential_gaussian_per_part_only_pose, find_unary_potential_mix_gaussian_per_part_only_pose
-from factor_graph_node import FactorGraphNode
+from factor_graph_node import FactorGraphNodeMixtureGaussian
 from find_pairwise_potentials import find_pariwise_potential_gaussian_only_pose, find_pariwise_potential_mix_gaussian_only_pose
 from perform_inference import infer_pose_each_part, infer_pose_each_part_mix_gaussian
 from visualize_point_cloud import visualize_point_cloud
@@ -27,22 +27,20 @@ def get_unary_pots_each_part(partwise_data_pose):
 
     OUTPUTS:
     ------------
-    mean_all_parts
-    cov_all_parts
-        These variables are lists of length = # of body parts
+    gauss_mixture_all_parts
+        It is a list of length = # of body parts
+        Each element is an instance of a sklearn.mixture.GaussianMixture
     """
     number_of_body_parts = len(partwise_data_pose)
-    mean_all_parts = []
-    cov_all_parts = []
+    gauss_mixture_all_parts = []
 
     for body_part_index in range(number_of_body_parts):
-        mean, cov = find_unary_potential_gaussian_per_part_only_pose(partwise_data_pose[body_part_index])
-        mean_all_parts.append(mean)
-        cov_all_parts.append(cov)
-    return mean_all_parts, cov_all_parts
+        gauss_mixture_body_part = find_unary_potential_mix_gaussian_per_part_only_pose(partwise_data_pose[body_part_index])
+        gauss_mixture_all_parts.append(gauss_mixture_body_part)
+    return gauss_mixture_all_parts
 
 
-def create_factor_graph(mean_all_body_parts, cov_all_body_parts):
+def create_factor_graph(unary_potentials_all_parts):
     """
     Creates a representation of the Factor Graph
     Lists and the FactorGraphNode class is used
@@ -57,14 +55,13 @@ def create_factor_graph(mean_all_body_parts, cov_all_body_parts):
     factor_graph_list:
         List of the number of body parts
         Each element corresponds to the body part at that index
-        Each element is an object of the FactorGraphNode class
+        Each element is an object of the FactorGraphNodeMixtureGaussian class
     """
     factor_graph_list = []
-    number_of_body_parts = len(mean_all_body_parts)
+    number_of_body_parts = len(unary_potentials_all_parts)
 
     for body_part_index in range(number_of_body_parts):
-        node = FactorGraphNode(body_part_index, 
-                mean_all_body_parts[body_part_index], cov_all_body_parts[body_part_index])
+        node = FactorGraphNodeMixtureGaussian(body_part_index, unary_potentials_all_parts[body_part_index])
         factor_graph_list.append(node)
     return factor_graph_list
 
@@ -99,12 +96,12 @@ def update_pairwise_potentials(body_part_node, partwise_data_pose):
         neighbor_pose_data = partwise_data_pose[neighbor_index]
 
         if neighbor_index < body_part_node.node_index:
-            mean, cov = find_pariwise_potential_gaussian_only_pose(
+            pairwise_pot_for_part = find_pariwise_potential_mix_gaussian_only_pose(
                 neighbor_pose_data, curr_node_pose_data)
         else:
-            mean, cov = find_pariwise_potential_gaussian_only_pose(
-                curr_node_pose_data, neighbor_pose_data)
-        body_part_node.update_pairwise_pot(neighbor_index, mean, cov)
+            pairwise_pot_for_part = find_pariwise_potential_mix_gaussian_only_pose(
+                neighbor_pose_data, curr_node_pose_data)
+        body_part_node.update_pairwise_pot(neighbor_index, pairwise_pot_for_part)
 
 
 def visualize_body_model(poses):
@@ -131,10 +128,10 @@ def main():
     # We ignore the joint data for now
 
     # Unary Potentials
-    mean_all_body_parts, cov_all_body_parts = get_unary_pots_each_part(partwise_data_pose)
+    unary_pots_each_part = get_unary_pots_each_part(partwise_data_pose)
 
     # Creating the factor graph
-    factor_graph_list = create_factor_graph(mean_all_body_parts, cov_all_body_parts)
+    factor_graph_list = create_factor_graph(unary_pots_each_part)
 
     # Update pairwise potentials for each body part in the factor graph
     for body_part_node in factor_graph_list:
@@ -142,7 +139,7 @@ def main():
 
     # Performing inference
     inferred_pose_each_part = infer_pose_each_part_mix_gaussian(factor_graph_list)
-
+    import ipdb; ipdb.set_trace()
     # Visualizing the result
     visualize_body_model(inferred_pose_each_part)
 

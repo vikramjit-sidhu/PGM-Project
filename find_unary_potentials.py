@@ -1,5 +1,6 @@
 import numpy as np
-import ipdb
+from sklearn.mixture import GaussianMixture
+
 
 def find_unary_potential_gaussian_per_part(pose_vector, joint_locations):
     """
@@ -67,7 +68,6 @@ def find_unary_potential_gaussian_per_part_only_pose(pose_data):
 
     return mean, cov
 
-from sklearn import mixture
 
 def find_unary_potential_mix_gaussian_per_part_only_pose(pose_data):
     """
@@ -91,8 +91,6 @@ def find_unary_potential_mix_gaussian_per_part_only_pose(pose_data):
     """
 
     # Fit a Gaussian mixture with EM using 3 components
-    gmm = mixture.GaussianMixture(n_components=3, covariance_type='full').fit(pose_data)
-    mean = gmm.means_
-    cov = gmm.covariances_
+    gmm = GaussianMixture(n_components=3).fit(pose_data)
 
-    return mean, cov
+    return gmm

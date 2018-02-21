@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.mixture import GaussianMixture
 
 
 def find_pariwise_potential_gaussian_only_pose(part1_pose, part2_pose):
@@ -29,7 +30,6 @@ def find_pariwise_potential_gaussian_only_pose(part1_pose, part2_pose):
     cov = np.cov(data.T)
     return mean, cov
 
-from sklearn import mixture
 
 def find_pariwise_potential_mix_gaussian_only_pose(part1_pose, part2_pose):
     """
@@ -55,10 +55,8 @@ def find_pariwise_potential_mix_gaussian_only_pose(part1_pose, part2_pose):
     data = np.column_stack((part1_pose, part2_pose))
 
     # Fit a Gaussian mixture with EM using 3 components
-    gmm = mixture.GaussianMixture(n_components=3, covariance_type='full').fit(data)
-    mean = gmm.means_
-    cov = gmm.covariances_
-    return mean, cov
+    gmm = GaussianMixture(n_components=3).fit(data)
+    return gmm
 
 
 def find_pariwise_potential_gaussian(part1_pose, part1_joints, part2_pose, part2_joints):
