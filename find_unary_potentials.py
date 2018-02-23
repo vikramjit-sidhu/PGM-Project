@@ -2,6 +2,7 @@ import numpy as np
 
 from sklearn.mixture import GaussianMixture
 
+number_of_gaussian_mixtures = 6
 
 def find_unary_potential_gaussian_per_part(pose_vector, joint_locations):
     """
@@ -92,6 +93,6 @@ def find_unary_potential_mix_gaussian_per_part_only_pose(pose_data):
     """
 
     # Fit a Gaussian mixture with EM using 3 components
-    gmm = GaussianMixture(n_components=3).fit(pose_data)
+    gmm = GaussianMixture(n_components=number_of_gaussian_mixtures).fit(pose_data)
 
     return gmm

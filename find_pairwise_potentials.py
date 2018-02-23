@@ -2,6 +2,7 @@ import numpy as np
 
 from sklearn.mixture import GaussianMixture
 
+number_of_gaussian_mixtures = 6
 
 def find_pariwise_potential_gaussian_only_pose(part1_pose, part2_pose):
     """
@@ -56,7 +57,7 @@ def find_pariwise_potential_mix_gaussian_only_pose(part1_pose, part2_pose):
     data = np.column_stack((part1_pose, part2_pose))
 
     # Fit a Gaussian mixture with EM using 3 components
-    gmm = GaussianMixture(n_components=3).fit(data)
+    gmm = GaussianMixture(n_components=number_of_gaussian_mixtures).fit(data)
     return gmm
 
 

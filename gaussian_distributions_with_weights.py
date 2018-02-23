@@ -1,6 +1,9 @@
 
 from multivariate_normal_dist import conditional_distribution_multivariate_normal, multiply_two_multivariate_normal_distributions_pdfs
 
+import numpy as np
+
+
 class GaussianDistributionsWithWeights:
     """
     This class is used to keep track of various multivariate Gaussian Distributions
@@ -19,7 +22,6 @@ class GaussianDistributionsWithWeights:
         Set the weights list
         Corresponding to the weights, Set the means and covariances dictionaries.
         """
-        import numpy as np
         if isinstance(weights, np.ndarray):
             weights = weights.tolist()
 
@@ -42,6 +44,9 @@ class GaussianDistributionsWithWeights:
         Each of these elements correspond to each other
 
         """
+        if isinstance(weights_new, np.ndarray):
+            weights_new = weights_new.tolist()
+
         weight_list_curr = self.weight_list
         means_dict_curr = self.means_dict
         covs_dict_curr = self.covs_dict
@@ -105,8 +110,6 @@ class GaussianDistributionsWithWeights:
         weight_chosen
             The weight we have chosen
         """
-        import numpy as np
-
         if isinstance(weight_list, np.ndarray):
             weight_list = weight_list.tolist()
 
@@ -115,9 +118,11 @@ class GaussianDistributionsWithWeights:
 
         # Finding which interval the uniform sample lies in
         curr_range_end = 0
-        for i in range(len(weight_list_sorted)):
-            curr_range_end += weight_list_sorted[i]
+        for weight in weight_list_sorted:
+            curr_range_end += weight
             if uniform_sample < curr_range_end:
-                weight_chosen = weight_list_sorted[i]
+                weight_chosen = weight
                 break
+        else:
+            weight_chosen = weight_list_sorted[-1]
         return weight_chosen
