@@ -65,8 +65,8 @@ def prepare_data_new_data():
     partwise_data_pose:
         A python list, each element of the list contains all the data 
         for a part.
-        e.g. the first element of the list is a 918x3 np array.
-        918 -> # of data points
+        e.g. the first element of the list is a Nx3 np array.
+        N -> # of data points
         3 -> rotation vectors
         This array will contain all the data points for the first body part
 

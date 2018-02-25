@@ -2,7 +2,7 @@ import numpy as np
 
 from sklearn.mixture import GaussianMixture
 
-number_of_gaussian_mixtures = 6
+number_of_gaussian_mixtures = 3
 
 def find_pariwise_potential_gaussian_only_pose(part1_pose, part2_pose):
     """

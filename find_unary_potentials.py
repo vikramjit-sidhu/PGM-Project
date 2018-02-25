@@ -2,7 +2,7 @@ import numpy as np
 
 from sklearn.mixture import GaussianMixture
 
-number_of_gaussian_mixtures = 6
+number_of_gaussian_mixtures = 3
 
 def find_unary_potential_gaussian_per_part(pose_vector, joint_locations):
     """

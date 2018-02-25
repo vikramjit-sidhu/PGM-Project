@@ -106,7 +106,7 @@ def update_pairwise_potentials(body_part_node, partwise_data_pose):
 
 
 def main():
-    partwise_data_pose, partwise_data_joints = prepare_data_new_data()
+    partwise_data_pose, _ = prepare_data_new_data()
     # We ignore the joint data for now
 
     # Unary Potentials

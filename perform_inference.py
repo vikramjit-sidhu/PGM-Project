@@ -4,7 +4,7 @@ from gaussian_distributions_with_weights import GaussianDistributionsWithWeights
 
 import numpy as np
 
-num_samples = 10000
+num_samples = 7500
 
 
 def generate_initial_joint_locations(num_body_parts):
