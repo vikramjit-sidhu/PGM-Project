@@ -1,4 +1,3 @@
-# PGM-Project
 Human Body Pose generation using Factor Graphs
 
 Running the Code
